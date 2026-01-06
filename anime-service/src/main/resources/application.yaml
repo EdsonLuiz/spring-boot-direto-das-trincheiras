@@ -1,3 +1,10 @@
 spring:
   application:
     name: anime-service
+  threads:
+    virtual:
+      enabled: true
+server:
+  tomcat:
+    threads:
+      max: 20

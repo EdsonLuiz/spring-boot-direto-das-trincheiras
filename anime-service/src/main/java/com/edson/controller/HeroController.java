@@ -20,4 +20,12 @@ public class HeroController {
         return ResponseEntity.ok(HEROES.stream().filter(h -> h.equalsIgnoreCase(name)).toList());
     }
 
+    @GetMapping("/{name}")
+    public ResponseEntity<String> findByName(@PathVariable String name){
+        return HEROES.stream()
+                .filter(h -> h.equalsIgnoreCase(name))
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 }

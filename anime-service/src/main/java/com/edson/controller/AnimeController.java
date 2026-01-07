@@ -42,9 +42,7 @@ public class AnimeController {
     @GetMapping("/{id}")
     public ResponseEntity<AnimeGetResponse> findById(@PathVariable Long id) {
         log.info("Find anime by id {}", id);
-        return service.list().stream()
-                .filter(a -> a.id().equals(id))
-                .findFirst()
+        return service.findById(id)
                 .map(ANIME_MAPPER::toGetResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

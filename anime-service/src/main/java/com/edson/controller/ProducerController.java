@@ -45,9 +45,7 @@ public class ProducerController {
     @GetMapping("/{id}")
     public ResponseEntity<ProducerGetResponse> findById(@PathVariable Long id) {
         log.info("Find Producer by id {}", id);
-        return service.list().stream()
-                .filter(p -> p.id().equals(id))
-                .findFirst()
+        return service.findById(id)
                 .map(PRODUCER_MAPPER::toGetResponse)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

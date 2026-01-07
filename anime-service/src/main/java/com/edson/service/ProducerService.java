@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProducerService {
@@ -21,6 +22,12 @@ public class ProducerService {
 
     public List<Producer> list(){
         return PRODUCERS;
+    }
+
+    public Optional<Producer> findById(Long id){
+        return PRODUCERS.stream()
+                .filter(producer -> producer.id().equals(id))
+                .findFirst();
     }
 
     public Producer save(Producer producer){

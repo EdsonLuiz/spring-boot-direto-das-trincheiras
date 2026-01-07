@@ -1,9 +1,12 @@
 package com.edson.controller;
 
+import com.edson.domain.Anime;
 import com.edson.mapper.AnimeMapper;
 import com.edson.request.AnimePostRequest;
+import com.edson.request.AnimePutRequest;
 import com.edson.response.AnimeGetResponse;
 import com.edson.response.AnimePostResponse;
+import com.edson.response.AnimePutResponse;
 import com.edson.service.AnimeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/animes")
@@ -50,7 +54,7 @@ public class AnimeController {
 
     @PostMapping
     public ResponseEntity<AnimePostResponse> save(@RequestBody AnimePostRequest request) {
-        var animeEntity = ANIME_MAPPER.toEntity(request);
+        var animeEntity = ANIME_MAPPER.fromAnimePostRequestToEntity(request);
         AnimePostResponse response = ANIME_MAPPER.toPostResponse(service.save(animeEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -60,5 +64,14 @@ public class AnimeController {
         log.info("Delete anime by id {}", id);
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping
+    public ResponseEntity<AnimePutResponse> update(@RequestBody AnimePutRequest request) {
+        var animeEntity = ANIME_MAPPER.fromAnimePutRequestToEntity(request);
+        Optional<Anime> response = service.update(animeEntity);
+
+        return response.map(anime -> ResponseEntity.ok(ANIME_MAPPER.toPutResponse(anime)))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

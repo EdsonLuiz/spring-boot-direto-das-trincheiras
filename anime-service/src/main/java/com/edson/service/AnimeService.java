@@ -38,4 +38,14 @@ public class AnimeService {
                 .findFirst()
                 .ifPresent(ANIMES::remove);
     }
+
+
+    public Optional<Anime> update(Anime animeEntity) {
+        if(ANIMES.removeIf(anime -> anime.id().equals(animeEntity.id()))) {
+            ANIMES.add(animeEntity);
+            return Optional.of(animeEntity);
+        }
+
+        return Optional.empty();
+    }
 }

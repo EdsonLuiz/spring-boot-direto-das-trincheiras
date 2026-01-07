@@ -24,4 +24,11 @@ public class AnimeService {
         ANIMES.add(anime);
         return anime;
     }
+
+    public void delete(Long id) {
+        var animeToDelete = ANIMES.stream()
+                .filter(anime -> anime.id().equals(id))
+                .findFirst()
+                .map(ANIMES::remove);
+    }
 }

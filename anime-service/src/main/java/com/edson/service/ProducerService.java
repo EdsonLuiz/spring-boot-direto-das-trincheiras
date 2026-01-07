@@ -41,4 +41,12 @@ public class ProducerService {
                 .findFirst()
                 .ifPresent(PRODUCERS::remove);
     }
+
+    public Optional<Producer> update(Producer entity) {
+        if(PRODUCERS.removeIf(producer -> producer.id().equals(entity.id()))) {
+            PRODUCERS.add(entity);
+            return Optional.of(entity);
+        }
+        return Optional.empty();
+    }
 }

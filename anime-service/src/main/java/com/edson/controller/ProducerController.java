@@ -3,8 +3,10 @@ package com.edson.controller;
 import com.edson.domain.Producer;
 import com.edson.mapper.ProducerMapper;
 import com.edson.request.ProducerPostRequest;
+import com.edson.request.ProducerPutRequest;
 import com.edson.response.ProducerGetResponse;
 import com.edson.response.ProducerPostResponse;
+import com.edson.response.ProducerPutResponse;
 import com.edson.service.ProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +57,7 @@ public class ProducerController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             headers = "x-api-key=123")
     public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest request) {
-        Producer producerEntity = PRODUCER_MAPPER.toEntity(request);
+        Producer producerEntity = PRODUCER_MAPPER.fromProducerPostRequestToEntity(request);
         ProducerPostResponse response = PRODUCER_MAPPER.toPostResponse(service.save(producerEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -66,4 +68,14 @@ public class ProducerController {
         service.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping
+    public ResponseEntity<ProducerPutResponse> update(@RequestBody ProducerPutRequest request) {
+        var producerEntity = service.update(PRODUCER_MAPPER.fromProducerPutRequestToEntity(request));
+
+        return producerEntity
+                .map(producer -> ResponseEntity.ok(PRODUCER_MAPPER.toPutResponse(producer)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
 }

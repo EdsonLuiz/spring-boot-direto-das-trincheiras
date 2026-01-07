@@ -9,9 +9,9 @@ import java.util.List;
 
 @Service
 public class ProducerService {
-    private static final List<Producer> producers = new ArrayList<>();
+    private static final List<Producer> PRODUCERS = new ArrayList<>();
     static {
-        producers.addAll(List.of(
+        PRODUCERS.addAll(List.of(
                 new Producer(1L, "Producer 01", LocalDateTime.now()),
                 new Producer(2L, "Producer 02", LocalDateTime.now()),
                 new Producer(3L, "Producer 03", LocalDateTime.now()),
@@ -20,11 +20,18 @@ public class ProducerService {
     }
 
     public List<Producer> list(){
-        return  producers;
+        return PRODUCERS;
     }
 
     public Producer save(Producer producer){
-        producers.add(producer);
+        PRODUCERS.add(producer);
         return producer;
+    }
+
+    public void delete(Long id) {
+        PRODUCERS.stream()
+                .filter(producer -> producer.id().equals(id))
+                .findFirst()
+                .ifPresent(PRODUCERS::remove);
     }
 }

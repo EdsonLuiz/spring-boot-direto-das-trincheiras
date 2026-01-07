@@ -61,4 +61,11 @@ public class ProducerController {
         ProducerPostResponse response = PRODUCER_MAPPER.toPostResponse(service.save(producerEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        log.info("Delete Producer by id {}", id);
+        service.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

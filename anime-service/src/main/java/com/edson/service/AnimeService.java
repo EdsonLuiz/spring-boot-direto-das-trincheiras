@@ -26,9 +26,9 @@ public class AnimeService {
     }
 
     public void delete(Long id) {
-        var animeToDelete = ANIMES.stream()
+        ANIMES.stream()
                 .filter(anime -> anime.id().equals(id))
                 .findFirst()
-                .map(ANIMES::remove);
+                .ifPresent(ANIMES::remove);
     }
 }

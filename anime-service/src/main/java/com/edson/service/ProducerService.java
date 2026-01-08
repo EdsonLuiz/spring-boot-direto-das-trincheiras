@@ -43,10 +43,15 @@ public class ProducerService {
     }
 
     public Optional<Producer> update(Producer entity) {
-        if(PRODUCERS.removeIf(producer -> producer.id().equals(entity.id()))) {
-            PRODUCERS.add(entity);
-            return Optional.of(entity);
-        }
-        return Optional.empty();
+
+        return PRODUCERS.stream()
+                .filter(p -> p.id().equals(entity.id()))
+                .findFirst()
+                .map(oldProducer -> {
+                    Producer producerUpdated = entity.withCreatedAt(oldProducer.createdAt());
+                    PRODUCERS.remove(oldProducer);
+                    PRODUCERS.add(producerUpdated);
+                    return producerUpdated;
+                });
     }
 }

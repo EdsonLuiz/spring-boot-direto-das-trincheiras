@@ -1,53 +1,40 @@
 package com.edson.service;
 
 import com.edson.domain.Anime;
+import com.edson.repository.AnimeHardCodedRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class AnimeService {
-    private static final List<Anime> ANIMES = new ArrayList<>(List.of(
-            new Anime(1L, "Anime 01", LocalDateTime.now()),
-            new Anime(2L, "Anime 02", LocalDateTime.now()),
-            new Anime(3L, "Anime 03",  LocalDateTime.now()),
-            new Anime(4L, "Anime 04", LocalDateTime.now())
-    ));
+    private final AnimeHardCodedRepository repository;
 
-    public List<Anime> list(){
-        return  ANIMES;
+    public List<Anime> list(String name){
+        return  StringUtils.hasText(name) ? repository.findByName(name) : repository.findAll() ;
     }
 
-    public Optional<Anime> findById(Long id){
-        return ANIMES.stream()
-                .filter(anime -> anime.id().equals(id))
-                .findFirst();
+    public Anime findByIdOrThrowNotFound(Long id){
+        return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
     }
 
     public Anime save(Anime anime){
-        ANIMES.add(anime);
-        return anime;
+        return repository.save(anime);
     }
 
     public void delete(Long id) {
-        ANIMES.stream()
-                .filter(anime -> anime.id().equals(id))
-                .findFirst()
-                .ifPresent(ANIMES::remove);
+        var animeFound = findByIdOrThrowNotFound(id);
+        repository.delete(animeFound);
     }
 
-    public Optional<Anime> update(Anime animeEntity) {
-        return ANIMES.stream()
-                .filter(a -> a.id().equals(animeEntity.id()))
-                .findFirst()
-                .map(oldAnime -> {
-                    var updatedAnime = animeEntity.withCreatedAt(oldAnime.createdAt());
-                    ANIMES.remove(oldAnime);
-                    ANIMES.add(updatedAnime);
-                    return updatedAnime;
-                });
+    public void update(Anime anime) {
+        var oldAnime = findByIdOrThrowNotFound(anime.id());
+        var newAnime = anime.withCreatedAt(oldAnime.createdAt());
+        repository.update(newAnime);
     }
 }

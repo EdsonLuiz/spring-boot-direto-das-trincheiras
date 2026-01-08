@@ -6,7 +6,6 @@ import com.edson.request.AnimePostRequest;
 import com.edson.request.AnimePutRequest;
 import com.edson.response.AnimeGetResponse;
 import com.edson.response.AnimePostResponse;
-import com.edson.response.AnimePutResponse;
 import com.edson.service.AnimeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/animes")
@@ -26,35 +24,22 @@ public class AnimeController {
     private final AnimeService service;
 
     @GetMapping
-    public ResponseEntity<List<AnimeGetResponse>> list() {
-        log.info(Thread.currentThread().getName());
-        List<AnimeGetResponse> response = ANIME_MAPPER.toGetResponse(service.list());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/filter")
-    public ResponseEntity<AnimeGetResponse> filterByName(@RequestParam String name) {
-        log.info("Filtering anime by name {}", name);
-        return service.list().stream()
-                .filter(a -> a.name().equalsIgnoreCase(name))
-                .findFirst()
-                .map(ANIME_MAPPER::toGetResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<AnimeGetResponse>> findAll(@RequestParam(required = false) String name) {
+        log.info("find all anime by name: {}", name);
+        List<Anime> response = service.list(name);
+        return ResponseEntity.ok(ANIME_MAPPER.toGetResponse(response));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<AnimeGetResponse> findById(@PathVariable Long id) {
         log.info("Find anime by id {}", id);
-        return service.findById(id)
-                .map(ANIME_MAPPER::toGetResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Anime anime = service.findByIdOrThrowNotFound(id);
+        return ResponseEntity.ok(ANIME_MAPPER.toGetResponse(anime));
     }
 
     @PostMapping
-    public ResponseEntity<AnimePostResponse> save(@RequestBody AnimePostRequest request) {
-        var animeEntity = ANIME_MAPPER.fromAnimePostRequestToEntity(request);
+    public ResponseEntity<AnimePostResponse> save(@RequestBody AnimePostRequest requestBody) {
+        var animeEntity = ANIME_MAPPER.fromAnimePostRequestToEntity(requestBody);
         AnimePostResponse response = ANIME_MAPPER.toPostResponse(service.save(animeEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -67,11 +52,9 @@ public class AnimeController {
     }
 
     @PutMapping
-    public ResponseEntity<AnimePutResponse> update(@RequestBody AnimePutRequest request) {
-        var animeEntity = ANIME_MAPPER.fromAnimePutRequestToEntity(request);
-        Optional<Anime> response = service.update(animeEntity);
-
-        return response.map(anime -> ResponseEntity.ok(ANIME_MAPPER.toPutResponse(anime)))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> update(@RequestBody AnimePutRequest requestBody) {
+        log.info("Update anime with id {}", requestBody.id());
+        service.update(ANIME_MAPPER.fromAnimePutRequestToEntity(requestBody));
+        return ResponseEntity.noContent().build();
     }
 }

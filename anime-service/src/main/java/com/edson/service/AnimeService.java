@@ -39,13 +39,15 @@ public class AnimeService {
                 .ifPresent(ANIMES::remove);
     }
 
-
     public Optional<Anime> update(Anime animeEntity) {
-        if(ANIMES.removeIf(anime -> anime.id().equals(animeEntity.id()))) {
-            ANIMES.add(animeEntity);
-            return Optional.of(animeEntity);
-        }
-
-        return Optional.empty();
+        return ANIMES.stream()
+                .filter(a -> a.id().equals(animeEntity.id()))
+                .findFirst()
+                .map(oldAnime -> {
+                    var updatedAnime = animeEntity.withCreatedAt(oldAnime.createdAt());
+                    ANIMES.remove(oldAnime);
+                    ANIMES.add(updatedAnime);
+                    return updatedAnime;
+                });
     }
 }

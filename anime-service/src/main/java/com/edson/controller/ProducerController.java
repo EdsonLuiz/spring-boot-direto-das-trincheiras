@@ -21,14 +21,14 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class ProducerController {
-    private static final ProducerMapper PRODUCER_MAPPER = ProducerMapper.INSTANCE;
+    private final ProducerMapper mapper;
     private final ProducerService service;
 
     @GetMapping
     public ResponseEntity<List<ProducerGetResponse>> listAll(@RequestParam(required = false) String name) {
         log.info("list all producers: {}", name);
         List<Producer> response = service.findAll(name);
-        List<ProducerGetResponse> producerGetResponses = PRODUCER_MAPPER.toGetResponse(response);
+        List<ProducerGetResponse> producerGetResponses = mapper.toGetResponse(response);
         return ResponseEntity.ok(producerGetResponses);
     }
 
@@ -36,7 +36,7 @@ public class ProducerController {
     public ResponseEntity<ProducerGetResponse> findById(@PathVariable Long id) {
         log.info("Find Producer by id {}", id);
         Producer producer = service.findByIdOrThrowNotFound(id);
-        ProducerGetResponse producerGetResponse = PRODUCER_MAPPER.toGetResponse(producer);
+        ProducerGetResponse producerGetResponse = mapper.toGetResponse(producer);
         return ResponseEntity.ok(producerGetResponse);
     }
 
@@ -45,8 +45,8 @@ public class ProducerController {
             headers = "x-api-key=123")
     public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest request) {
         log.info("save producer request: {}", request);
-        Producer producerEntity = PRODUCER_MAPPER.fromProducerPostRequestToEntity(request);
-        ProducerPostResponse response = PRODUCER_MAPPER.toPostResponse(service.save(producerEntity));
+        Producer producerEntity = mapper.fromProducerPostRequestToEntity(request);
+        ProducerPostResponse response = mapper.toPostResponse(service.save(producerEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -60,7 +60,7 @@ public class ProducerController {
     @PutMapping
     public ResponseEntity<Void> update(@RequestBody ProducerPutRequest request) {
         log.info("update producer request: {}", request);
-        var producerEntity = PRODUCER_MAPPER.fromProducerPutRequestToEntity(request);
+        var producerEntity = mapper.fromProducerPutRequestToEntity(request);
         service.update(producerEntity);
         return ResponseEntity.notFound().build();
     }

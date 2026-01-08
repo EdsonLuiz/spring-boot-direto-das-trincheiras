@@ -6,7 +6,6 @@ import com.edson.request.ProducerPostRequest;
 import com.edson.request.ProducerPutRequest;
 import com.edson.response.ProducerGetResponse;
 import com.edson.response.ProducerPostResponse;
-import com.edson.response.ProducerPutResponse;
 import com.edson.service.ProducerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,38 +24,27 @@ public class ProducerController {
     private static final ProducerMapper PRODUCER_MAPPER = ProducerMapper.INSTANCE;
     private final ProducerService service;
 
-
     @GetMapping
-    public ResponseEntity<List<ProducerGetResponse>> list() {
-        log.info(Thread.currentThread().getName());
-        var response = PRODUCER_MAPPER.toGetResponse(service.list());
-        return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/filter")
-    public ResponseEntity<ProducerGetResponse> filterByName(@RequestParam String name) {
-        log.info("Filtering Producer by name {}", name);
-        return service.list().stream()
-                .filter(p -> p.name().equalsIgnoreCase(name))
-                .findFirst()
-                .map(PRODUCER_MAPPER::toGetResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<List<ProducerGetResponse>> listAll(@RequestParam(required = false) String name) {
+        log.info("list all producers: {}", name);
+        List<Producer> response = service.findAll(name);
+        List<ProducerGetResponse> producerGetResponses = PRODUCER_MAPPER.toGetResponse(response);
+        return ResponseEntity.ok(producerGetResponses);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProducerGetResponse> findById(@PathVariable Long id) {
         log.info("Find Producer by id {}", id);
-        return service.findById(id)
-                .map(PRODUCER_MAPPER::toGetResponse)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        Producer producer = service.findByIdOrThrowNotFound(id);
+        ProducerGetResponse producerGetResponse = PRODUCER_MAPPER.toGetResponse(producer);
+        return ResponseEntity.ok(producerGetResponse);
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             headers = "x-api-key=123")
     public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest request) {
+        log.info("save producer request: {}", request);
         Producer producerEntity = PRODUCER_MAPPER.fromProducerPostRequestToEntity(request);
         ProducerPostResponse response = PRODUCER_MAPPER.toPostResponse(service.save(producerEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -70,12 +58,11 @@ public class ProducerController {
     }
 
     @PutMapping
-    public ResponseEntity<ProducerPutResponse> update(@RequestBody ProducerPutRequest request) {
-        var producerEntity = service.update(PRODUCER_MAPPER.fromProducerPutRequestToEntity(request));
-
-        return producerEntity
-                .map(producer -> ResponseEntity.ok(PRODUCER_MAPPER.toPutResponse(producer)))
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> update(@RequestBody ProducerPutRequest request) {
+        log.info("update producer request: {}", request);
+        var producerEntity = PRODUCER_MAPPER.fromProducerPutRequestToEntity(request);
+        service.update(producerEntity);
+        return ResponseEntity.notFound().build();
     }
 
 }

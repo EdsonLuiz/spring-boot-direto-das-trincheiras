@@ -1,57 +1,39 @@
 package com.edson.service;
 
 import com.edson.domain.Producer;
+import com.edson.repository.ProducerHardCodedRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProducerService {
-    private static final List<Producer> PRODUCERS = new ArrayList<>();
-    static {
-        PRODUCERS.addAll(List.of(
-                new Producer(1L, "Producer 01", LocalDateTime.now()),
-                new Producer(2L, "Producer 02", LocalDateTime.now()),
-                new Producer(3L, "Producer 03", LocalDateTime.now()),
-                new Producer(4L, "Producer 04", LocalDateTime.now())
-        ));
+    private final ProducerHardCodedRepository repository;
+
+    public List<Producer> findAll(String name){
+        return name == null ? repository.findAll() : repository.findByName(name);
     }
 
-    public List<Producer> list(){
-        return PRODUCERS;
-    }
-
-    public Optional<Producer> findById(Long id){
-        return PRODUCERS.stream()
-                .filter(producer -> producer.id().equals(id))
-                .findFirst();
+    public Producer findByIdOrThrowNotFound(Long id){
+        return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Producer not found"));
     }
 
     public Producer save(Producer producer){
-        PRODUCERS.add(producer);
-        return producer;
+        return repository.save(producer);
     }
 
     public void delete(Long id) {
-        PRODUCERS.stream()
-                .filter(producer -> producer.id().equals(id))
-                .findFirst()
-                .ifPresent(PRODUCERS::remove);
+        Producer producer = findByIdOrThrowNotFound(id);
+        repository.delete(producer);
     }
 
-    public Optional<Producer> update(Producer entity) {
-
-        return PRODUCERS.stream()
-                .filter(p -> p.id().equals(entity.id()))
-                .findFirst()
-                .map(oldProducer -> {
-                    Producer producerUpdated = entity.withCreatedAt(oldProducer.createdAt());
-                    PRODUCERS.remove(oldProducer);
-                    PRODUCERS.add(producerUpdated);
-                    return producerUpdated;
-                });
+    public void update(Producer entity) {
+        var oldProducer = findByIdOrThrowNotFound(entity.id());
+        Producer newProducer = entity.withCreatedAt(oldProducer.createdAt());
+        repository.update(newProducer);
     }
 }

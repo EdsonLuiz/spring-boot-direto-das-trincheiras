@@ -25,7 +25,7 @@ public class ProducerController {
     private final ProducerService service;
 
     @GetMapping
-    public ResponseEntity<List<ProducerGetResponse>> listAll(@RequestParam(required = false) String name) {
+    public ResponseEntity<List<ProducerGetResponse>> findAll(@RequestParam(required = false) String name) {
         log.info("list all producers: {}", name);
         List<Producer> response = service.findAll(name);
         List<ProducerGetResponse> producerGetResponses = mapper.toGetResponse(response);
@@ -46,7 +46,8 @@ public class ProducerController {
     public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest request) {
         log.info("save producer request: {}", request);
         Producer producerEntity = mapper.fromProducerPostRequestToEntity(request);
-        ProducerPostResponse response = mapper.toPostResponse(service.save(producerEntity));
+        Producer saved = service.save(producerEntity);
+        ProducerPostResponse response = mapper.toPostResponse(saved);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -62,7 +63,7 @@ public class ProducerController {
         log.info("update producer request: {}", request);
         var producerEntity = mapper.fromProducerPutRequestToEntity(request);
         service.update(producerEntity);
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.noContent().build();
     }
 
 }

@@ -13,6 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +32,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 @WebMvcTest(controllers = ProducerController.class)
 @ComponentScan(basePackages = "com.edson")
@@ -391,5 +395,77 @@ class ProducerControllerTest {
 
         // Auditing interactions
         BDDMockito.then(service).should().update(producerEntity);
+
     }
+
+
+    @ParameterizedTest
+    @MethodSource("create_ReturnsBadRequest_WhenValidationFails_Scenarios")
+    @DisplayName("POST /api/v1/produces returns 404 Bad request when validation fails")
+    void create_ReturnsBadRequest_WhenValidationFails(ProducerPostRequest requestBody) throws Exception {
+        // Given
+        var requestBodyJson = objectMapper.writeValueAsString(requestBody);
+        // When
+        var result = mockMvc.perform(MockMvcRequestBuilders.post(PRODUCERS_URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBodyJson)
+                .header("x-api-key", "123"));
+
+        // Then
+        result
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Auditing interactions
+        BDDMockito.then(mapper).should(BDDMockito.never()).fromProducerPostRequestToEntity(BDDMockito.any(ProducerPostRequest.class));
+        BDDMockito.then(service).should(BDDMockito.never()).save(BDDMockito.any(Producer.class));
+        BDDMockito.then(mapper).should(BDDMockito.never()).toPostResponse(BDDMockito.any(Producer.class));
+    }
+
+    private static Stream<Arguments> create_ReturnsBadRequest_WhenValidationFails_Scenarios() {
+        var requestAllBlank = new ProducerPostRequest("");
+
+        return Stream.of(
+                Arguments.of(requestAllBlank)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("update_ReturnsBadRequest_WhenValidationFails_Scenarios")
+    @DisplayName("PUT /api/v1/produces returns 404 Bad request when validation fails")
+    void update_ReturnsBadRequest_WhenValidationFails(ProducerPutRequest requestBody) throws Exception {
+        // Given
+        var requestBodyJson = objectMapper.writeValueAsString(requestBody);
+        // When
+        var result = mockMvc.perform(MockMvcRequestBuilders.put(PRODUCERS_URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBodyJson));
+
+        // Then
+        result
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Auditing interactions
+        BDDMockito.then(mapper).should(BDDMockito.never()).fromProducerPutRequestToEntity(BDDMockito.any(ProducerPutRequest.class));
+        BDDMockito.then(service).should(BDDMockito.never()).update(BDDMockito.any(Producer.class));
+    }
+
+    private static Stream<Arguments> update_ReturnsBadRequest_WhenValidationFails_Scenarios() {
+        return Stream.of(
+                Arguments.of(ProducerPutRequest.builder().build()),
+                Arguments.of(createValid().id(-99L).build()),
+                Arguments.of(createValid().name("").build()),
+                Arguments.of(createValid().createdAt(LocalDateTime.now().plusYears(1)).build())
+        );
+    }
+
+    private static ProducerPutRequest.ProducerPutRequestBuilder createValid() {
+        var dateNow = LocalDateTime.now();
+        return ProducerPutRequest.builder()
+                .id(1L)
+                .name("Juca")
+                .createdAt(dateNow);
+    }
+
+
 }
+

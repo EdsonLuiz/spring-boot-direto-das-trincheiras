@@ -7,6 +7,7 @@ import com.edson.request.ProducerPutRequest;
 import com.edson.response.ProducerGetResponse;
 import com.edson.response.ProducerPostResponse;
 import com.edson.service.ProducerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -43,7 +44,7 @@ public class ProducerController {
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE,
             headers = "x-api-key=123")
-    public ResponseEntity<ProducerPostResponse> save(@RequestBody ProducerPostRequest request) {
+    public ResponseEntity<ProducerPostResponse> save(@RequestBody @Valid ProducerPostRequest request) {
         log.info("save producer request: {}", request);
         Producer producerEntity = mapper.fromProducerPostRequestToEntity(request);
         Producer saved = service.save(producerEntity);
@@ -59,7 +60,7 @@ public class ProducerController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> update(@RequestBody ProducerPutRequest request) {
+    public ResponseEntity<Void> update(@RequestBody @Valid ProducerPutRequest request) {
         log.info("update producer request: {}", request);
         var producerEntity = mapper.fromProducerPutRequestToEntity(request);
         service.update(producerEntity);

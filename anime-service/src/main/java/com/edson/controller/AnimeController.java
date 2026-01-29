@@ -7,6 +7,7 @@ import com.edson.request.AnimePutRequest;
 import com.edson.response.AnimeGetResponse;
 import com.edson.response.AnimePostResponse;
 import com.edson.service.AnimeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class AnimeController {
     }
 
     @PostMapping
-    public ResponseEntity<AnimePostResponse> save(@RequestBody AnimePostRequest requestBody) {
+    public ResponseEntity<AnimePostResponse> save(@RequestBody @Valid AnimePostRequest requestBody) {
         var animeEntity = mapper.fromAnimePostRequestToEntity(requestBody);
         AnimePostResponse response = mapper.toPostResponse(service.save(animeEntity));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -52,7 +53,7 @@ public class AnimeController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> update(@RequestBody AnimePutRequest requestBody) {
+    public ResponseEntity<Void> update(@RequestBody @Valid AnimePutRequest requestBody) {
         log.info("Update anime with id {}", requestBody.id());
         service.update(mapper.fromAnimePutRequestToEntity(requestBody));
         return ResponseEntity.noContent().build();

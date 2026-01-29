@@ -1,4 +1,8 @@
 package com.edson.request;
 
-public record AnimePostRequest(String name) {
+import jakarta.validation.constraints.NotBlank;
+
+public record AnimePostRequest(
+        @NotBlank(message = "The field 'name' is required")
+        String name) {
 }

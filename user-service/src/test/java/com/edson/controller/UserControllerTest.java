@@ -400,4 +400,84 @@ public class UserControllerTest {
                 Arguments.of(emailPatternMatch, List.of(emailPatternMessage))
         );
     }
+
+    @ParameterizedTest
+    @DisplayName("PUT /api/v1/users returns 400 Bad request when validation fails")
+    @MethodSource("update_returnsBadRequest_WhenValidationFails_Scenarios")
+    void update_returnsBadRequest_WhenValidationFails(UserPutRequest requestBody, List<String> expectedErrorMessage) throws Exception {
+        // Given
+        var invalidRequestBodyJson = objectMapper.writeValueAsString(requestBody);
+        // When
+        var response = mockMvc.perform(MockMvcRequestBuilders.put(URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidRequestBodyJson));
+
+        // Then
+        response
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        Exception resolvedException = response.andReturn().getResolvedException();
+        Assertions.assertThat(resolvedException).isNotNull();
+        Assertions.assertThat(resolvedException.getMessage()).contains(expectedErrorMessage);
+
+        // Auditing interactions
+        BDDMockito.then(mapper).should(BDDMockito.never()).fromUserPutRequestToUser(BDDMockito.any(UserPutRequest.class));
+        BDDMockito.then(service).should(BDDMockito.never()).update(BDDMockito.any(User.class));
+    }
+
+    private static Stream<Arguments> update_returnsBadRequest_WhenValidationFails_Scenarios() {
+        var idNotNullMessage = "The field 'id' is required";
+        var firstNameNoBlankMessage = "The field 'firstName' is required";
+        var lastNameNoBlankMessage = "The field 'lastName' is required";
+        var emailNoBlankMessage = "The field 'email' is required";
+        var emailPatternMessage = "Email is invalid";
+        var allNoBlankMessages = List.of(idNotNullMessage, firstNameNoBlankMessage, lastNameNoBlankMessage, emailNoBlankMessage);
+
+        var allFieldsBlank = UserPutRequest.builder().build();
+
+        var idNull = UserPutRequest.builder()
+                .id(null)
+                .firstName("Juca")
+                .lastName("Doe")
+                .email("valid@email.com")
+                .build();
+
+        var firstNameBlank = UserPutRequest.builder()
+                .id(99L)
+                .firstName("")
+                .lastName("Doe")
+                .email("valid@email.com")
+                .build();
+
+        var lastNameBlank = UserPutRequest.builder()
+                .id(99L)
+                .firstName("Juca")
+                .lastName("")
+                .email("valid@email.com")
+                .build();
+
+        var emailNameBlank = UserPutRequest.builder()
+                .id(99L)
+                .firstName("Juca")
+                .lastName("Doe")
+                .email("")
+                .build();
+
+        var emailPatternMatch = UserPutRequest.builder()
+                .id(99L)
+                .firstName("Juca")
+                .lastName("Doe")
+                .email("email@@doe.com")
+                .build();
+
+
+        return Stream.of(
+                Arguments.of(allFieldsBlank, allNoBlankMessages),
+                Arguments.of(idNull, List.of(idNotNullMessage)),
+                Arguments.of(firstNameBlank, List.of(firstNameNoBlankMessage)),
+                Arguments.of(lastNameBlank, List.of(lastNameNoBlankMessage)),
+                Arguments.of(emailNameBlank, List.of(emailNoBlankMessage)),
+                Arguments.of(emailPatternMatch, List.of(emailPatternMessage))
+        );
+    }
 }

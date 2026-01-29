@@ -52,7 +52,7 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<Void> update(@RequestBody UserPutRequest request) {
+    public ResponseEntity<Void> update(@RequestBody @Valid UserPutRequest request) {
         User user = mapper.fromUserPutRequestToUser(request);
         service.update(user);
         return ResponseEntity.noContent().build();

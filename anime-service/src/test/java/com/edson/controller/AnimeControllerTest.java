@@ -12,6 +12,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.BDDMockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.HttpStatus;
@@ -24,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.mockito.BDDMockito.*;
 
@@ -240,4 +245,68 @@ class AnimeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
+
+    @ParameterizedTest
+    @MethodSource("create_ReturnsBadRequest_WhenValidationFails_Scenarios")
+    @DisplayName("POST /api/v1/animes returns 400 Bad Request when validation fails")
+    void create_ReturnsBadRequest_WhenValidationFails(AnimePostRequest requestBodyObject, String expectedMessage) throws Exception {
+        // Given
+        var requestBodyJson = objectMapper.writeValueAsString(requestBodyObject);
+
+        // When
+        var response = mockMvc.perform(MockMvcRequestBuilders.post(URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBodyJson));
+
+        // Then
+        response
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Auditing interactions
+        BDDMockito.then(mapper).should(BDDMockito.never()).fromAnimePostRequestToEntity(BDDMockito.any(AnimePostRequest.class));
+        BDDMockito.then(service).should(BDDMockito.never()).save(BDDMockito.any(Anime.class));
+    }
+
+    private static Stream<Arguments> create_ReturnsBadRequest_WhenValidationFails_Scenarios() {
+        var animePostRequestBlankName = new AnimePostRequest("");
+        var nameNoBlankMessage = "The field 'name' is required";
+
+        return Stream.of(
+                Arguments.of(animePostRequestBlankName, nameNoBlankMessage)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("update_ReturnsBadRequest_WhenValidationFails_Scenarios")
+    @DisplayName("PUT /api/v1/animes returns 400 Bad Request when validation fails")
+    void update_ReturnsBadRequest_WhenValidationFails(AnimePutRequest requestBodyObject) throws Exception {
+        // Given
+        var requestBodyJson = objectMapper.writeValueAsString(requestBodyObject);
+
+        // When
+        var response = mockMvc.perform(MockMvcRequestBuilders.put(URI)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBodyJson));
+
+        // Then
+        response
+                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+
+        // Auditing interactions
+        BDDMockito.then(mapper).should(BDDMockito.never()).fromAnimePutRequestToEntity(BDDMockito.any(AnimePutRequest.class));
+        BDDMockito.then(service).should(BDDMockito.never()).update(BDDMockito.any(Anime.class));
+    }
+
+    private static Stream<Arguments> update_ReturnsBadRequest_WhenValidationFails_Scenarios() {
+        var requestAllBlak = AnimePutRequest.builder().build();
+        var requestNullId = AnimePutRequest.builder().id(null).name("Juca").build();
+        var requestBlankName = AnimePutRequest.builder().id(99L).name("").build();
+
+        return Stream.of(
+                Arguments.of(requestAllBlak),
+                Arguments.of(requestNullId),
+                Arguments.of(requestBlankName)
+        );
+    }
+
 }

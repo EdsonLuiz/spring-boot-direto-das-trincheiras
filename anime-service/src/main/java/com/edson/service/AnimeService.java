@@ -1,12 +1,11 @@
 package com.edson.service;
 
 import com.edson.domain.Anime;
+import com.edson.exception.NotFoundException;
 import com.edson.repository.AnimeHardCodedRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ public class AnimeService {
     }
 
     public Anime findByIdOrThrowNotFound(Long id){
-        return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Anime not found"));
+        return repository.findById(id).orElseThrow(() -> new NotFoundException("Anime not found"));
     }
 
     public Anime save(Anime anime){

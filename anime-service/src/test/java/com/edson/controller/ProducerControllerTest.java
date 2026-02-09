@@ -1,6 +1,8 @@
 package com.edson.controller;
 
 import com.edson.domain.Producer;
+import com.edson.exception.DefaultErrorMessage;
+import com.edson.exception.NotFoundException;
 import com.edson.mapper.ProducerMapper;
 import com.edson.request.ProducerPostRequest;
 import com.edson.request.ProducerPutRequest;
@@ -191,20 +193,20 @@ class ProducerControllerTest {
     void findById_Returns404_WhenProducerNotFound() throws Exception {
         // Given
         var nonExistentId = 99L;
+        var errorMessage = "Producer not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
 
         BDDMockito.given(service.findByIdOrThrowNotFound(nonExistentId))
-                .willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Producer not found"));
+                .willThrow(new NotFoundException(errorMessage));
 
         // When
         var response = mockMvc.perform(MockMvcRequestBuilders.get(PRODUCERS_URI + "/{id}", nonExistentId))
                 .andDo(MockMvcResultHandlers.print());
 
         // Then
-        response.andExpect(MockMvcResultMatchers.status().isNotFound());
-
-        Assertions.assertThat(response.andReturn().getResponse().getErrorMessage())
-                .as("when passing an non-existent id %d, expected 404 and specific error reason", nonExistentId)
-                .isEqualTo("Producer not found");
+        response
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
 
         // Auditing interactions
         BDDMockito.then(service).should().findByIdOrThrowNotFound(nonExistentId);
@@ -312,8 +314,9 @@ class ProducerControllerTest {
         // Given
         var nonExistentId = 99L;
         var errorMessage = "Producer not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
 
-        BDDMockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorMessage))
+        BDDMockito.doThrow(new NotFoundException(errorMessage))
                 .when(service)
                 .delete(nonExistentId);
 
@@ -324,12 +327,9 @@ class ProducerControllerTest {
         var responseBody = mvcResult.andReturn().getResponse().getErrorMessage();
 
         // Then
-        mvcResult.andExpect(MockMvcResultMatchers.status().isNotFound());
-
-        Assertions.assertThat(responseBody)
-                .as("when deleting a producer with non existent id %d, expect 404 NOT FOUND and message %s", errorMessage)
-                .isEqualTo(errorMessage);
-
+        mvcResult
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
 
         // Auditing interactions
         BDDMockito.then(service).should().delete(nonExistentId);
@@ -371,12 +371,13 @@ class ProducerControllerTest {
     void update_ReturnsNotFound_WhenIdDoesNotExists() throws Exception {
         // Given
         var errorMessage = "Producer not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
         var invalidId = 99L;
         var request = new ProducerPutRequest(invalidId, p1.name(), p1.createdAt());
         var producerEntity = p1;
 
         BDDMockito.given(mapper.fromProducerPutRequestToEntity(request)).willReturn(producerEntity);
-        BDDMockito.doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorMessage))
+        BDDMockito.doThrow(new NotFoundException(errorMessage))
                 .when(service).update(producerEntity);
 
         // When
@@ -387,11 +388,9 @@ class ProducerControllerTest {
                 .andDo(MockMvcResultHandlers.print());
 
         // Then
-        mvcResult.andExpect(MockMvcResultMatchers.status().isNotFound());
-
-        Assertions.assertThat(mvcResult.andReturn().getResponse().getErrorMessage())
-                .as("when updating non-existent producer with id %d, expect HTTP 404 and error message")
-                .isEqualTo(errorMessage);
+        mvcResult
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
 
         // Auditing interactions
         BDDMockito.then(service).should().update(producerEntity);
@@ -401,7 +400,7 @@ class ProducerControllerTest {
 
     @ParameterizedTest
     @MethodSource("create_ReturnsBadRequest_WhenValidationFails_Scenarios")
-    @DisplayName("POST /api/v1/produces returns 404 Bad request when validation fails")
+    @DisplayName("POST /api/v1/produces returns 400 Bad request when validation fails")
     void create_ReturnsBadRequest_WhenValidationFails(ProducerPostRequest requestBody) throws Exception {
         // Given
         var requestBodyJson = objectMapper.writeValueAsString(requestBody);
@@ -431,7 +430,7 @@ class ProducerControllerTest {
 
     @ParameterizedTest
     @MethodSource("update_ReturnsBadRequest_WhenValidationFails_Scenarios")
-    @DisplayName("PUT /api/v1/produces returns 404 Bad request when validation fails")
+    @DisplayName("PUT /api/v1/produces returns 400 Bad request when validation fails")
     void update_ReturnsBadRequest_WhenValidationFails(ProducerPutRequest requestBody) throws Exception {
         // Given
         var requestBodyJson = objectMapper.writeValueAsString(requestBody);

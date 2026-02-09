@@ -1,6 +1,8 @@
 package com.edson.controller;
 
 import com.edson.domain.Anime;
+import com.edson.exception.DefaultErrorMessage;
+import com.edson.exception.NotFoundException;
 import com.edson.mapper.AnimeMapper;
 import com.edson.request.AnimePostRequest;
 import com.edson.request.AnimePutRequest;
@@ -160,11 +162,13 @@ class AnimeControllerTest {
         // Given
         var requestedId = 99L;
         var errorMessage = "Anime not found";
-        given(service.findByIdOrThrowNotFound(requestedId)).willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, errorMessage));
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
+        given(service.findByIdOrThrowNotFound(requestedId)).willThrow(new NotFoundException(errorMessage));
 
         // When & Then
         mockMvc.perform(MockMvcRequestBuilders.get(URI + "/{id}", requestedId))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
     }
 
     @Test
@@ -205,11 +209,14 @@ class AnimeControllerTest {
     @Order(7)
     void delete_Returns404_WhenResourceDoesNotExists() throws Exception {
         // Given
-        willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).given(service).delete(anyLong());
+        var errorMessage = "Anime not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
+        willThrow(new NotFoundException(errorMessage)).given(service).delete(anyLong());
 
         // When & Then
         mockMvc.perform(MockMvcRequestBuilders.delete(URI + "/{id}", 99L))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
     }
 
     @Test
@@ -234,16 +241,19 @@ class AnimeControllerTest {
     @Order(9)
     void update_Returns404_WhenUpdateElementDoesNotExists() throws Exception {
         // Given
+        var errorMessage = "Anime not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
         var requestObject = new AnimePutRequest(99L, "InvalidTest");
 
         given(mapper.fromAnimePutRequestToEntity(any())).willReturn(anime01);
-        willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND)).given(service).update(any());
+        willThrow(new NotFoundException(errorMessage)).given(service).update(any());
 
         // When & Then
         mockMvc.perform(MockMvcRequestBuilders.put(URI)
                         .content(objectMapper.writeValueAsString(requestObject))
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
     }
 
     @ParameterizedTest

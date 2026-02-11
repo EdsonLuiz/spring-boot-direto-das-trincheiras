@@ -1,6 +1,8 @@
 package com.edson.controller;
 
 import com.edson.domain.User;
+import com.edson.exception.DefaultErrorMessage;
+import com.edson.exception.NotFoundException;
 import com.edson.mapper.UserMapper;
 import com.edson.request.UserPostRequest;
 import com.edson.request.UserPutRequest;
@@ -165,14 +167,17 @@ public class UserControllerTest {
         // Given
         var nonExistentId = 99L;
 
-        BDDMockito.given(service.findById(nonExistentId)).willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        String errorMessage = "User not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
+        BDDMockito.given(service.findById(nonExistentId)).willThrow(new NotFoundException(errorMessage));
 
         // When
         var responseOfRequest = mockMvc.perform(MockMvcRequestBuilders.get(URI + "/{id}", nonExistentId));
 
         // Then
         responseOfRequest
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
     }
 
     @Test
@@ -242,16 +247,18 @@ public class UserControllerTest {
     @DisplayName("DELETE /api/v1/users/{id} returns HTTP STATUS 404 when id does not exists")
     void deleteById_ReturnsNotFound_WhenIdNotExists() throws Exception {
         // Given
-
+        String errorMessage = "User not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
         long nonExistentId = 99L;
-        BDDMockito.willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")).given(service).deleteById(nonExistentId);
+        BDDMockito.willThrow(new NotFoundException(errorMessage)).given(service).deleteById(nonExistentId);
 
         // When
         var response = mockMvc.perform(MockMvcRequestBuilders.delete(URI + "/{id}", nonExistentId));
 
         // Then
         response
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
 
         // Auditing interactions
         BDDMockito.then(service).should().deleteById(nonExistentId);
@@ -297,6 +304,8 @@ public class UserControllerTest {
     @DisplayName("PUT /api/v1/users returns HTTP STATUS 404 when identity no match")
     void update_ReturnsNotFound_WhenIdentityNotMatch() throws Exception {
         // Given
+        String errorMessage = "User not found";
+        var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
         var requestBody = UserPutRequest.builder()
                 .id(99L)
                 .firstName("juca")
@@ -314,7 +323,7 @@ public class UserControllerTest {
                 .build();
 
         BDDMockito.given(mapper.fromUserPutRequestToUser(BDDMockito.any(UserPutRequest.class))).willReturn(user);
-        BDDMockito.willThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found")).given(service).update(user);
+        BDDMockito.willThrow(new NotFoundException(errorMessage)).given(service).update(user);
 
         // When
         var response = mockMvc.perform(MockMvcRequestBuilders.put(URI)
@@ -323,7 +332,8 @@ public class UserControllerTest {
 
         // Then
         response
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().json(expectedJson));
 
         // Auditing interactions
         BDDMockito.then(service).should().update(user);

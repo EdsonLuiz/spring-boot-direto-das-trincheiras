@@ -9,6 +9,8 @@ spring:
     password: ${ENV_MYSQL_ROOT_PASSWORD:root}
   jpa:
     show-sql: true
+    hibernate:
+      ddl-auto: update
   threads:
     virtual:
       enabled: true

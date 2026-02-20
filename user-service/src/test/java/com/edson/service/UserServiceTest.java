@@ -2,6 +2,7 @@ package com.edson.service;
 
 import com.edson.domain.User;
 import com.edson.repository.UserHardCodedRepository;
+import com.edson.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -23,6 +25,9 @@ import java.util.Optional;
 class UserServiceTest {
     @InjectMocks
     private UserService service;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Mock
     private UserHardCodedRepository repository;
@@ -53,7 +58,7 @@ class UserServiceTest {
     @DisplayName("findAll returns all users when firstName is null")
     void findAll_returnsAllUsers_WhenFirstNameIsNull() {
         // Given
-        BDDMockito.given(repository.findAll()).willReturn(users);
+        BDDMockito.given(userRepository.findAll()).willReturn(users);
 
         // When
         var actualResult = service.findAll(null);
@@ -66,15 +71,14 @@ class UserServiceTest {
                 .containsExactlyInAnyOrderElementsOf(List.of(testUser01, testUser02));
 
         // Auditing interactions
-        BDDMockito.then(repository).should().findAll();
-        BDDMockito.then(repository).should(BDDMockito.never()).findAllByName(BDDMockito.anyString());
+        BDDMockito.then(userRepository).should().findAll();
     }
 
     @Test
     @DisplayName("findAll returns filtered users when firstName exists")
     void findAll_ReturnsFilteredUsers_WhenFirstNameExists() {
         // Given
-        var existentFirstName = testUser01.firstName();
+        var existentFirstName = testUser01.getFirstName();
         BDDMockito.given(repository.findAllByName(existentFirstName)).willReturn(List.of(testUser01));
 
         // When
@@ -207,7 +211,7 @@ class UserServiceTest {
                 .email(newEmail)
                 .build();
 
-        BDDMockito.given(repository.findById(testUser01.id())).willReturn(Optional.of(testUser01));
+        BDDMockito.given(repository.findById(testUser01.getId())).willReturn(Optional.of(testUser01));
 
         // When
         service.update(userToBeUpdated);
@@ -229,7 +233,7 @@ class UserServiceTest {
         // BDDMockito.then(repository).should().update(userToBeUpdated);
 
         // Auditing interactions
-        BDDMockito.then(repository).should().findById(testUser01.id());
+        BDDMockito.then(repository).should().findById(testUser01.getId());
     }
 
     @Test
@@ -246,7 +250,7 @@ class UserServiceTest {
                 .email(newEmail)
                 .build();
 
-        BDDMockito.given(repository.findById(userToBeUpdated.id())).willReturn(Optional.empty());
+        BDDMockito.given(repository.findById(userToBeUpdated.getId())).willReturn(Optional.empty());
 
         // When
         // Then

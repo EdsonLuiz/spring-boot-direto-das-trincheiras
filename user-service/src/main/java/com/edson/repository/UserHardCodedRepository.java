@@ -18,13 +18,13 @@ public class UserHardCodedRepository {
 
     public List<User> findAllByName(String firstName) {
         return userData.getUsers().stream()
-                .filter(u -> u.firstName().equalsIgnoreCase(firstName))
+                .filter(u -> u.getFirstName().equalsIgnoreCase(firstName))
                 .toList();
     }
 
     public Optional<User> findById(Long id) {
         return userData.getUsers().stream()
-                .filter(u -> u.id().equals(id))
+                .filter(u -> u.getId().equals(id))
                 .findFirst();
     }
 
@@ -34,12 +34,12 @@ public class UserHardCodedRepository {
     }
 
     public void deleteById(Long id) {
-        userData.getUsers().removeIf(u -> u.id().equals(id));
+        userData.getUsers().removeIf(u -> u.getId().equals(id));
     }
 
     public void update(User user) {
-        if (findById(user.id()).isPresent()) {
-            deleteById(user.id());
+        if (findById(user.getId()).isPresent()) {
+            deleteById(user.getId());
             create(user);
         }
     }

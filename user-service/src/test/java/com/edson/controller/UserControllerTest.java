@@ -87,10 +87,10 @@ public class UserControllerTest {
         var users = List.of(user01);
 
         UserGetResponse responseDTO = UserGetResponse.builder()
-                .id(user01.id())
-                .firstName(user01.firstName())
-                .lastName(user01.lastName())
-                .email(user01.email())
+                .id(user01.getId())
+                .firstName(user01.getFirstName())
+                .lastName(user01.getLastName())
+                .email(user01.getEmail())
                 .build();
 
         List<UserGetResponse> responseList = List.of(responseDTO);
@@ -140,10 +140,10 @@ public class UserControllerTest {
         var userId = 1L;
         User user = User.builder().id(1L).firstName("name01").lastName("lastName01").email("name01@lastName01").build();
         UserGetResponse responseDTO = UserGetResponse.builder()
-                .id(user.id())
-                .firstName(user.firstName())
-                .lastName(user.lastName())
-                .email(user.email())
+                .id(user.getId())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .email(user.getEmail())
                 .build();
 
         var expectedJson = objectMapper.writeValueAsString(responseDTO);

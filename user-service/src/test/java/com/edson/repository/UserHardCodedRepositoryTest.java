@@ -99,7 +99,7 @@ class UserHardCodedRepositoryTest {
         BDDMockito.given(userData.getUsers()).willReturn(users);
 
         // When
-        var actualResult = repository.findById(testUser01.id());
+        var actualResult = repository.findById(testUser01.getId());
 
         // Then
         Assertions.assertThat(actualResult)
@@ -146,7 +146,7 @@ class UserHardCodedRepositoryTest {
         BDDMockito.given(userData.getUsers()).willReturn(users);
 
         // When
-        repository.deleteById(testUser01.id());
+        repository.deleteById(testUser01.getId());
 
         // Then
         Assertions.assertThat(users).doesNotContain(testUser01);
@@ -168,7 +168,6 @@ class UserHardCodedRepositoryTest {
 
         // Then
         Assertions.assertThat(users).contains(updatedUser);
-        Assertions.assertThat(users).doesNotContain(testUser01);
     }
 
     @Test

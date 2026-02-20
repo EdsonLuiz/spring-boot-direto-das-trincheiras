@@ -37,7 +37,7 @@ public class UserService {
     }
 
     public void update(User user) {
-        this.findById(user.id());
+        this.findById(user.getId());
         repository.update(user);
     }
 }

@@ -1,7 +1,24 @@
 package com.edson.domain;
 
-import lombok.Builder;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Builder
-public record User(Long id, String firstName, String lastName, String email) {
+@Entity
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+public class User {
+    @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(nullable = false)
+    private String firstName;
+    @Column(nullable = false)
+    private String lastName;
+    @Column(nullable = false, unique = true)
+    private String email;
 }

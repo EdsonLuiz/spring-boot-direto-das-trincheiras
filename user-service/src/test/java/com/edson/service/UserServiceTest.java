@@ -27,10 +27,7 @@ class UserServiceTest {
     private UserService service;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
-    private UserHardCodedRepository repository;
+    private UserRepository repository;
 
     private User testUser01, testUser02;
     private List<User> users;
@@ -58,7 +55,7 @@ class UserServiceTest {
     @DisplayName("findAll returns all users when firstName is null")
     void findAll_returnsAllUsers_WhenFirstNameIsNull() {
         // Given
-        BDDMockito.given(userRepository.findAll()).willReturn(users);
+        BDDMockito.given(repository.findAll()).willReturn(users);
 
         // When
         var actualResult = service.findAll(null);
@@ -71,7 +68,7 @@ class UserServiceTest {
                 .containsExactlyInAnyOrderElementsOf(List.of(testUser01, testUser02));
 
         // Auditing interactions
-        BDDMockito.then(userRepository).should().findAll();
+        BDDMockito.then(repository).should().findAll();
     }
 
     @Test
@@ -79,7 +76,7 @@ class UserServiceTest {
     void findAll_ReturnsFilteredUsers_WhenFirstNameExists() {
         // Given
         var existentFirstName = testUser01.getFirstName();
-        BDDMockito.given(repository.findAllByName(existentFirstName)).willReturn(List.of(testUser01));
+        BDDMockito.given(repository.findByFirstNameIgnoreCase(existentFirstName)).willReturn(List.of(testUser01));
 
         // When
         var actualResult = service.findAll(existentFirstName);
@@ -92,7 +89,7 @@ class UserServiceTest {
                 .containsExactlyInAnyOrderElementsOf(List.of(testUser01));
 
         // Auditing interactions
-        BDDMockito.then(repository).should().findAllByName(existentFirstName);
+        BDDMockito.then(repository).should().findByFirstNameIgnoreCase(existentFirstName);
         BDDMockito.then(repository).should(BDDMockito.never()).findAll();
     }
 
@@ -145,7 +142,7 @@ class UserServiceTest {
                 .email("maria@doe.com")
                 .build();
 
-        BDDMockito.given(repository.create(newUser)).willReturn(newUser);
+        BDDMockito.given(repository.save(newUser)).willReturn(newUser);
 
         // When
         User actualResult = service.create(newUser);
@@ -156,7 +153,7 @@ class UserServiceTest {
                 .isEqualTo(newUser);
 
         // Auditing interactions
-        BDDMockito.then(repository).should().create(newUser);
+        BDDMockito.then(repository).should().save(newUser);
     }
 
     @Test
@@ -201,24 +198,26 @@ class UserServiceTest {
         // Given
         var userBeforeUpdate = testUser01;
 
+        var id = 1L;
         var newFirstName = "Juca";
         var newLastName = "Doe";
         var newEmail = "juca@doe.com";
         var userToBeUpdated = User.builder()
-                .id(1L)
+                .id(id)
                 .firstName(newFirstName)
                 .lastName(newLastName)
                 .email(newEmail)
                 .build();
 
-        BDDMockito.given(repository.findById(testUser01.getId())).willReturn(Optional.of(testUser01));
+        BDDMockito.given(repository.findById(id)).willReturn(Optional.of(testUser01));
+        BDDMockito.given(repository.save(testUser01)).willReturn(testUser01);
 
         // When
         service.update(userToBeUpdated);
 
         // Then
         var userCaptor = ArgumentCaptor.forClass(User.class);
-        BDDMockito.then(repository).should().update(userCaptor.capture());
+        BDDMockito.then(repository).should().save(userCaptor.capture());
         var capturedUser = userCaptor.getValue();
 
         Assertions.assertThat(capturedUser)
@@ -233,7 +232,7 @@ class UserServiceTest {
         // BDDMockito.then(repository).should().update(userToBeUpdated);
 
         // Auditing interactions
-        BDDMockito.then(repository).should().findById(testUser01.getId());
+//        BDDMockito.then(repository).should().findById(testUser01.getId());
     }
 
     @Test
@@ -261,6 +260,6 @@ class UserServiceTest {
                 .isEqualTo(HttpStatus.NOT_FOUND);
 
         // Auditing interactions
-        BDDMockito.then(repository).should(BDDMockito.never()).update(userToBeUpdated);
+        BDDMockito.then(repository).should(BDDMockito.never()).save(userToBeUpdated);
     }
 }

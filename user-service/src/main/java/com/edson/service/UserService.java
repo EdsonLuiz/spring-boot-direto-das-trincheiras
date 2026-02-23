@@ -42,9 +42,10 @@ public class UserService {
 
     @Transactional
     public void update(User user) {
-        User userManaged = this.findById(user.getId());
-        userManaged.setFirstName(user.getFirstName());
-        userManaged.setLastName(user.getLastName());
-        userManaged.setEmail(user.getEmail());
+        this.findById(user.getId());
+//        userManaged.setFirstName(user.getFirstName());
+//        userManaged.setLastName(user.getLastName());
+//        userManaged.setEmail(user.getEmail());
+        repository.save(user);
     }
 }

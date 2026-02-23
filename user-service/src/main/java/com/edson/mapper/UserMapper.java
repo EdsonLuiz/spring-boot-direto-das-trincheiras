@@ -20,17 +20,11 @@ public interface UserMapper {
     UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     List<UserGetResponse> fromUserToUserGetResponse(List<User> user);
-
     UserGetResponse fromUserToUserGetResponse(User user);
 
-    @Mapping(target = "id", expression = "java(generateId())")
     User fromUserPostRequestToUser(UserPostRequest request);
 
     UserPostResponse fromUserToUserPostResponse(User entity);
 
     User fromUserPutRequestToUser(UserPutRequest request);
-
-    default Long generateId() {
-        return ThreadLocalRandom.current().nextLong(0, 100_000);
-    }
 }

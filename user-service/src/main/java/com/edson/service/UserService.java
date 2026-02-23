@@ -7,6 +7,7 @@ import com.edson.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -14,14 +15,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserHardCodedRepository repository;
-    private final UserRepository userRepository;
+    private final UserRepository repository;
 
     public List<User> findAll(String firstName) {
         if(firstName == null) {
-            return userRepository.findAll();
+            return repository.findAll();
         }
-        return repository.findAllByName(firstName);
+        return repository.findByFirstNameIgnoreCase(firstName);
     }
 
     public User findById(Long id) {
@@ -29,17 +29,22 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
     }
 
+    @Transactional
     public User create(User user) {
-        return repository.create(user);
+        return repository.save(user);
     }
 
+    @Transactional
     public void deleteById(Long id) {
         this.findById(id);
         repository.deleteById(id);
     }
 
+    @Transactional
     public void update(User user) {
-        this.findById(user.getId());
-        repository.update(user);
+        User userManaged = this.findById(user.getId());
+        userManaged.setFirstName(user.getFirstName());
+        userManaged.setLastName(user.getLastName());
+        userManaged.setEmail(user.getEmail());
     }
 }

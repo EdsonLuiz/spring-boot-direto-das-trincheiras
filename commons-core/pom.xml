@@ -12,7 +12,7 @@
 
     <groupId>com.edson</groupId>
     <artifactId>commons-core</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <name>commons-core</name>
     <description>Classes que podem ser reaproveitadas</description>
     <packaging>jar</packaging>

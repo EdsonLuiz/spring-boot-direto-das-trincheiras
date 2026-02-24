@@ -36,16 +36,17 @@ public class UserService {
 
     @Transactional
     public void deleteById(Long id) {
-        this.findById(id);
+        asserUserExists(id);
         repository.deleteById(id);
     }
 
     @Transactional
     public void update(User user) {
         this.findById(user.getId());
-//        userManaged.setFirstName(user.getFirstName());
-//        userManaged.setLastName(user.getLastName());
-//        userManaged.setEmail(user.getEmail());
         repository.save(user);
+    }
+
+    public void asserUserExists(Long id){
+        this.findById(id);
     }
 }

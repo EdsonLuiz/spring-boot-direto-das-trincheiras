@@ -1,6 +1,7 @@
 package com.edson.service;
 
 import com.edson.domain.User;
+import com.edson.exception.EmailAlreadyExistsException;
 import com.edson.exception.NotFoundException;
 import com.edson.repository.UserHardCodedRepository;
 import com.edson.repository.UserRepository;
@@ -42,7 +43,7 @@ public class UserService {
 
     @Transactional
     public void update(User user) {
-        this.findById(user.getId());
+        this.asserUserExists(user.getId());
         this.assertEmailDoesNotExist(user.getEmail(), user.getId());
         repository.save(user);
     }
@@ -56,10 +57,10 @@ public class UserService {
     }
 
     public void assertEmailDoesNotExist(String email, Long id) {
-        repository.findByEmailIgnoreCase(email).ifPresent(UserService::throwEmailExistsException);
+        repository.findByEmailIgnoreCaseAndIdNot(email, id).ifPresent(UserService::throwEmailExistsException);
     }
 
     private static void throwEmailExistsException(User user) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email %s already exists".formatted(user.getEmail()));
+        throw new EmailAlreadyExistsException("Email %s already exists".formatted(user.getEmail()));
     }
 }

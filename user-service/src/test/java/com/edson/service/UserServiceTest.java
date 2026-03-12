@@ -1,6 +1,7 @@
 package com.edson.service;
 
 import com.edson.domain.User;
+import com.edson.exception.EmailAlreadyExistsException;
 import com.edson.repository.UserHardCodedRepository;
 import com.edson.repository.UserRepository;
 import org.assertj.core.api.Assertions;
@@ -142,6 +143,7 @@ class UserServiceTest {
                 .email("maria@doe.com")
                 .build();
 
+        BDDMockito.given(repository.findByEmailIgnoreCase(newUser.getEmail())).willReturn(Optional.empty());
         BDDMockito.given(repository.save(newUser)).willReturn(newUser);
 
         // When
@@ -153,7 +155,35 @@ class UserServiceTest {
                 .isEqualTo(newUser);
 
         // Auditing interactions
+        BDDMockito.then(repository).should().findByEmailIgnoreCase(newUser.getEmail());
         BDDMockito.then(repository).should().save(newUser);
+        BDDMockito.then(repository).shouldHaveNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("create throws EmailAlreadyExistsException when email exists")
+    void create_Throws_EmailAlreadyExistsException_WhenEmailExists() {
+        // Given
+        var email = "maria@doe.com";
+        var newUser = User.builder()
+                .id(99L)
+                .firstName("Maria")
+                .lastName("Doe")
+                .email(email)
+                .build();
+
+        BDDMockito.given(repository.findByEmailIgnoreCase(newUser.getEmail())).willReturn(Optional.of(newUser));
+
+        // When Then
+        Assertions.assertThatExceptionOfType(EmailAlreadyExistsException.class)
+                .isThrownBy(() -> service.create(newUser))
+                .withMessageContaining("Email %s already exists".formatted(newUser.getEmail()))
+                .extracting(EmailAlreadyExistsException::getStatusCode)
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        // Auditing interactions
+        BDDMockito.then(repository).should().findByEmailIgnoreCase(newUser.getEmail());
+        BDDMockito.then(repository).shouldHaveNoMoreInteractions();
     }
 
     @Test
@@ -209,7 +239,8 @@ class UserServiceTest {
                 .email(newEmail)
                 .build();
 
-        BDDMockito.given(repository.findById(id)).willReturn(Optional.of(testUser01));
+        BDDMockito.given(repository.findById(id)).willReturn(Optional.of(userBeforeUpdate));
+        BDDMockito.given(repository.findByEmailIgnoreCaseAndIdNot(userToBeUpdated.getEmail(), userToBeUpdated.getId())).willReturn(Optional.empty());
         BDDMockito.given(repository.save(testUser01)).willReturn(testUser01);
 
         // When
@@ -232,7 +263,10 @@ class UserServiceTest {
         // BDDMockito.then(repository).should().update(userToBeUpdated);
 
         // Auditing interactions
-//        BDDMockito.then(repository).should().findById(testUser01.getId());
+        BDDMockito.then(repository).should().findById(id);
+        BDDMockito.then(repository).should().findByEmailIgnoreCaseAndIdNot(userToBeUpdated.getEmail(), userToBeUpdated.getId());
+        BDDMockito.then(repository).should().save(testUser01);
+        BDDMockito.then(repository).shouldHaveNoMoreInteractions();
     }
 
     @Test
@@ -261,5 +295,38 @@ class UserServiceTest {
 
         // Auditing interactions
         BDDMockito.then(repository).should(BDDMockito.never()).save(userToBeUpdated);
+    }
+
+    @Test
+    @DisplayName("update throws EmailAlreadyExistsException when email belongs to another user")
+    void update_ThrowsEmailAlreadyExistsException_WhenEmailBelongsToAnotherUser() {
+        // Given
+        var newFirstName = "Juca";
+        var newLastName = "Doe";
+        var newEmail = "juca@doe.com";
+        var userSaved = User.builder()
+                .id(99L)
+                .firstName(newFirstName)
+                .lastName(newLastName)
+                .email(newEmail)
+                .build();
+
+        var userToBeUpdated = userSaved.withFirstName("Marcos");
+
+        BDDMockito.given(repository.findById(userToBeUpdated.getId())).willReturn(Optional.of(userSaved));
+        BDDMockito.given(repository.findByEmailIgnoreCaseAndIdNot(userToBeUpdated.getEmail(), userToBeUpdated.getId())).willReturn(Optional.of(userSaved));
+
+        // When
+        // Then
+        Assertions.assertThatExceptionOfType(EmailAlreadyExistsException.class)
+                .isThrownBy(() -> service.update(userToBeUpdated))
+                .withMessageContaining("Email %s already exists".formatted(userToBeUpdated.getEmail()))
+                .extracting(ResponseStatusException::getStatusCode)
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+
+        // Auditing interactions
+        BDDMockito.then(repository).should().findById(userToBeUpdated.getId());
+        BDDMockito.then(repository).should().findByEmailIgnoreCaseAndIdNot(userToBeUpdated.getEmail(), userToBeUpdated.getId());
+        BDDMockito.then(repository).should(BDDMockito.never()).save(userSaved);
     }
 }

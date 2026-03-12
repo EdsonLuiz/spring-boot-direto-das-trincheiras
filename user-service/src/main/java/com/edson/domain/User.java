@@ -10,6 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Getter
 @Setter
+@With
 public class User {
     @EqualsAndHashCode.Include
     @Id

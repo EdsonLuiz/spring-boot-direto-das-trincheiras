@@ -68,11 +68,11 @@ class AnimeServiceTest {
         // Given
         var expectedAnime = animes.getFirst();
         var expectedAnimesFound = List.of(expectedAnime);
-        BDDMockito.given(repository.findByName(expectedAnime.name()))
+        BDDMockito.given(repository.findByName(expectedAnime.getName()))
                 .willReturn(expectedAnimesFound);
 
         // When
-        var actualAnimes = service.list(expectedAnime.name());
+        var actualAnimes = service.list(expectedAnime.getName());
 
         // Then
         Assertions.assertThat(actualAnimes)
@@ -82,7 +82,7 @@ class AnimeServiceTest {
                 .containsExactlyInAnyOrderElementsOf(expectedAnimesFound);
 
         // Auditing interactions
-        BDDMockito.then(repository).should().findByName(expectedAnime.name());
+        BDDMockito.then(repository).should().findByName(expectedAnime.getName());
         BDDMockito.then(repository).should(BDDMockito.never()).findAll();
     }
 
@@ -113,7 +113,7 @@ class AnimeServiceTest {
     void findByIdOrThrowNotFound_ReturnsEntity_WhenIdExists() {
         // Given
         var expectedAnime = animes.getFirst();
-        var existentId = expectedAnime.id();
+        var existentId = expectedAnime.getId();
         BDDMockito.given(repository.findById(existentId)).willReturn(Optional.of(expectedAnime));
 
         // When
@@ -191,7 +191,7 @@ class AnimeServiceTest {
     void delete_RemovesElement_WhenIdExists() {
         // Given
         var expectedAnime = animes.getFirst();
-        var existentId = expectedAnime.id();
+        var existentId = expectedAnime.getId();
         BDDMockito.given(repository.findById(existentId)).willReturn(Optional.of(expectedAnime));
 
         // When & Then
@@ -237,8 +237,8 @@ class AnimeServiceTest {
         // Given
         var newAnimeName = "newAnimeName";
         var existentAnime = animes.getFirst();
-        var validId = existentAnime.id();
-        var originalCreatedAt = existentAnime.createdAt();
+        var validId = existentAnime.getId();
+        var originalCreatedAt = existentAnime.getCreatedAt();
 
         var updateRequest = Anime.builder()
                 .id(validId)
@@ -273,7 +273,7 @@ class AnimeServiceTest {
         // Given
         var newAnimeName = "newAnimeName";
         var existentAnime = animes.getFirst();
-        var nonExistentId = existentAnime.id();
+        var nonExistentId = existentAnime.getId();
 
         var updateRequest = Anime.builder()
                 .id(nonExistentId)

@@ -18,13 +18,13 @@ public class AnimeHardCodedRepository {
 
     public Optional<Anime> findById(Long id){
         return animesData.getAnimes().stream()
-                .filter(anime -> anime.id().equals(id))
+                .filter(anime -> anime.getId() == id)
                 .findFirst();
     }
 
     public List<Anime> findByName(String name){
         return animesData.getAnimes().stream()
-                .filter(p -> p.name().equalsIgnoreCase(name))
+                .filter(p -> p.getName().equalsIgnoreCase(name))
                 .toList();
     }
 
@@ -34,7 +34,7 @@ public class AnimeHardCodedRepository {
     }
 
     public void delete(Anime anime) {
-        animesData.getAnimes().removeIf(p -> p.id().equals(anime.id()));
+        animesData.getAnimes().removeIf(p -> p.getId() == anime.getId());
     }
 
     public void update(Anime entity) {

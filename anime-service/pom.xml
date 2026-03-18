@@ -67,6 +67,7 @@
 			<groupId>com.edson</groupId>
 			<artifactId>commons-core</artifactId>
 			<version>${commons-core.version}</version>
+			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>

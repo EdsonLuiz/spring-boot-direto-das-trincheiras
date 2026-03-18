@@ -1,12 +1,26 @@
 package com.edson.domain;
 
-import lombok.Builder;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Builder
-public record Anime(Long id, String name, LocalDateTime createdAt) {
-    public Anime withCreatedAt(LocalDateTime createdAt) {
-        return new Anime(id, name, createdAt);
-    }
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@With
+public class Anime {
+    @EqualsAndHashCode.Include
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private LocalDateTime createdAt;
 }

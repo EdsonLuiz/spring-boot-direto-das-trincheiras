@@ -49,7 +49,7 @@ class AnimeHardCodedRepositoryTest {
     void findById_ReturnsOptionalEntity_WhenIdExists() {
         BDDMockito.given(repository.findAll()).willReturn(animeList);
         var animeExpected = animeList.getFirst();
-        var sut = repository.findById(animeExpected.id());
+        var sut = repository.findById(animeExpected.getId());
         Assertions.assertThat(sut).isNotNull().contains(animeExpected);
     }
 
@@ -68,7 +68,7 @@ class AnimeHardCodedRepositoryTest {
     void findByName_ReturnsEntityList_WhenNameMatches() {
         BDDMockito.given(repository.findAll()).willReturn(animeList);
         var expectedAnime = animeList.getFirst();
-        var sut = repository.findByName(expectedAnime.name());
+        var sut = repository.findByName(expectedAnime.getName());
         Assertions.assertThat(sut).isNotNull().contains(expectedAnime);
     }
 
@@ -86,7 +86,7 @@ class AnimeHardCodedRepositoryTest {
 
         var sut = repository.save(animeToSave);
         Assertions.assertThat(sut).isEqualTo(animeToSave);
-        var animeFound = repository.findById(sut.id());
+        var animeFound = repository.findById(sut.getId());
         Assertions.assertThat(animeFound).isNotNull().contains(sut);
     }
 
@@ -108,13 +108,13 @@ class AnimeHardCodedRepositoryTest {
 
         var animeToUpdate = animeList.getFirst();
         animeToUpdate = Anime.builder()
-                .id(animeToUpdate.id())
+                .id(animeToUpdate.getId())
                 .name("UPDATED").build();
 
         repository.update(animeToUpdate);
         Assertions.assertThat(animeList).contains(animeToUpdate);
-        var animeFound = repository.findById(animeToUpdate.id());
+        var animeFound = repository.findById(animeToUpdate.getId());
         Assertions.assertThat(animeFound).isPresent().contains(animeToUpdate);
-        Assertions.assertThat(animeFound.get().name()).isEqualTo(animeToUpdate.name());
+        Assertions.assertThat(animeFound.get().getName()).isEqualTo(animeToUpdate.getName());
     }
 }

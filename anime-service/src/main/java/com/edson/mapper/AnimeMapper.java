@@ -16,7 +16,6 @@ import java.util.List;
 public interface AnimeMapper {
 
     @Mapping(target = "createdAt", expression = "java(java.time.LocalDateTime.now())")
-    @Mapping(target = "id", expression = "java(java.util.concurrent.ThreadLocalRandom.current().nextLong(0, 100_000))")
     Anime fromAnimePostRequestToEntity(AnimePostRequest animePostRequest);
 
     AnimePostResponse toPostResponse(Anime anime);

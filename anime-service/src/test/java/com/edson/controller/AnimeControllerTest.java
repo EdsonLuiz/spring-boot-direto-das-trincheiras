@@ -26,7 +26,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -95,7 +94,7 @@ class AnimeControllerTest {
     @DisplayName("HTTP GET /api/v1/animes?name=Animes01 → 200 when name matches")
     @Order(2)
     void findAll_return200_whenNameMatches() throws Exception {
-        var nameToFind = anime01.name();
+        var nameToFind = anime01.getName();
         var animes = List.of(anime01);
         var animesResponse = List.of(animeGetResponse01);
         var expectedJson = objectMapper.writeValueAsString(animesResponse);
@@ -176,7 +175,7 @@ class AnimeControllerTest {
     @Order(6)
     void save_returns201_whenSuccessful() throws Exception {
         // Given
-        var animePostResponse = new AnimePostResponse(anime01.id(), anime01.name(), anime01.createdAt());
+        var animePostResponse = new AnimePostResponse(anime01.getId(), anime01.getName(), anime01.getCreatedAt());
         AnimePostRequest animePostRequest = new AnimePostRequest("Anime01");
         var jsonRequest = objectMapper.writeValueAsString(animePostRequest);
         var jsonResponse = objectMapper.writeValueAsString(anime01);

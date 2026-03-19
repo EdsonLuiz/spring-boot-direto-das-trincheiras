@@ -2,6 +2,7 @@ package com.edson.service;
 
 import com.edson.domain.Anime;
 import com.edson.repository.AnimeHardCodedRepository;
+import com.edson.repository.AnimeRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,7 @@ class AnimeServiceTest {
     private AnimeService service;
 
     @Mock
-    private AnimeHardCodedRepository repository;
+    private AnimeRepository repository;
 
     List<Anime> animes;
 
@@ -253,7 +254,7 @@ class AnimeServiceTest {
 
         // Then
         var animeCaptor = ArgumentCaptor.forClass(Anime.class);
-        BDDMockito.then(repository).should().update(animeCaptor.capture());
+        BDDMockito.then(repository).should().save(animeCaptor.capture());
         var savedAnime = animeCaptor.getValue();
 
         Assertions.assertThat(savedAnime)
@@ -300,6 +301,6 @@ class AnimeServiceTest {
 
         // Auditing interactions
         BDDMockito.then(repository).should().findById(nonExistentId);
-        BDDMockito.then(repository).should(BDDMockito.never()).update(BDDMockito.any(Anime.class));
+        BDDMockito.then(repository).should(BDDMockito.never()).save(BDDMockito.any(Anime.class));
     }
 }

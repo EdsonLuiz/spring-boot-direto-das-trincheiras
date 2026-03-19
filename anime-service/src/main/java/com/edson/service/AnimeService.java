@@ -41,6 +41,7 @@ public class AnimeService {
     public void update(Anime anime) {
         var oldAnime = findByIdOrThrowNotFound(anime.getId());
         BeanUtils.copyProperties(anime, oldAnime, "id", "createdAt");
+        repository.save(oldAnime);
     }
 
     private Anime findOrThrow(Long id) {

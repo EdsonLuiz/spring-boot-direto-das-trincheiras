@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @WebMvcTest(controllers = ProducerController.class)
-@ComponentScan(basePackages = "com.edson")
 class ProducerControllerTest {
     public static final String PRODUCERS_URI = "/api/v1/producers";
     @Autowired

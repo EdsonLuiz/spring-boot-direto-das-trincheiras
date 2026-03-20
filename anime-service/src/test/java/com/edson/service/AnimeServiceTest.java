@@ -1,7 +1,6 @@
 package com.edson.service;
 
 import com.edson.domain.Anime;
-import com.edson.repository.AnimeHardCodedRepository;
 import com.edson.repository.AnimeRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;

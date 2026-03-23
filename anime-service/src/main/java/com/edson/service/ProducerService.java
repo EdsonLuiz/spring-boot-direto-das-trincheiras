@@ -2,7 +2,7 @@ package com.edson.service;
 
 import com.edson.domain.Producer;
 import com.edson.exception.NotFoundException;
-import com.edson.repository.ProducerHardCodedRepository;
+import com.edson.repository.ProducerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ProducerService {
-    private final ProducerHardCodedRepository repository;
+    private final ProducerRepository repository;
 
     public List<Producer> findAll(String name){
         return name == null ? repository.findAll() : repository.findByName(name);
@@ -31,8 +31,11 @@ public class ProducerService {
     }
 
     public void update(Producer entity) {
-        var oldProducer = findByIdOrThrowNotFound(entity.id());
-        Producer newProducer = entity.withCreatedAt(oldProducer.createdAt());
-        repository.update(newProducer);
+        this.assertProducerExists(entity.getId());
+        repository.save(entity);
+    }
+
+    private void assertProducerExists(Long id){
+        this.findByIdOrThrowNotFound(id);
     }
 }

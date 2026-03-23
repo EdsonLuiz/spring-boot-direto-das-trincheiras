@@ -12,8 +12,6 @@ public record ProducerPutRequest(
         Long id,
         @NotNull(message = "Name cannot be null")
         @NotBlank(message = "Name cannot be blank")
-        String name,
-        @NotNull(message = "Created at cannot be null")
-        @Past(message = "Created at must be in the past")
-        LocalDateTime createdAt) {
+        String name) {
+
 }

@@ -104,7 +104,7 @@ class ProducerControllerTest {
         var responseList = List.of(r1);
         var expectedJson = objectMapper.writeValueAsString(responseList);
 
-        BDDMockito.given(service.findAll(producers.getFirst().name())).willReturn(producers);
+        BDDMockito.given(service.findAll(producers.getFirst().getName())).willReturn(producers);
         BDDMockito.given(mapper.toGetResponse(producers)).willReturn(responseList);
 
         // When
@@ -217,9 +217,9 @@ class ProducerControllerTest {
     @Order(6)
     void save_ReturnsCreatedAndProducer_WhenSuccessful() throws Exception {
         // Given
-        var request = new ProducerPostRequest(p1.name());
+        var request = new ProducerPostRequest(p1.getName());
         var producerEntity = p1;
-        var response = new ProducerPostResponse(p1.id(), p1.name(), p1.createdAt());
+        var response = new ProducerPostResponse(p1.getId(), p1.getName(), p1.getCreatedAt());
         var saved = p1;
 
         BDDMockito.given(mapper.fromProducerPostRequestToEntity(request)).willReturn(producerEntity);
@@ -262,7 +262,7 @@ class ProducerControllerTest {
     @Order(7)
     void save_ReturnsBadRequest_WhenHeaderIsMissing() throws Exception {
         // Given
-        var request = new ProducerPostRequest(p1.name());
+        var request = new ProducerPostRequest(p1.getName());
         var jsonBody = objectMapper.writeValueAsString(request);
 
         // When
@@ -341,8 +341,8 @@ class ProducerControllerTest {
     void update_ReturnsNoContent_WhenSuccessfulUpdate() throws Exception {
         // Given
         var updatedName = "New Name";
-        var request = new ProducerPutRequest(p1.id(), updatedName, p1.createdAt());
-        var producerEntity = Producer.builder().id(p1.id()).name(updatedName).createdAt(p1.createdAt()).build();
+        var request = new ProducerPutRequest(p1.getId(), updatedName);
+        var producerEntity = Producer.builder().id(p1.getId()).name(updatedName).createdAt(p1.getCreatedAt()).build();
         var jsonRequest = objectMapper.writeValueAsString(request);
 
         BDDMockito.given(mapper.fromProducerPutRequestToEntity(request)).willReturn(producerEntity);
@@ -372,7 +372,7 @@ class ProducerControllerTest {
         var errorMessage = "Producer not found";
         var expectedJson = objectMapper.writeValueAsString(new DefaultErrorMessage(HttpStatus.NOT_FOUND.value(), errorMessage));
         var invalidId = 99L;
-        var request = new ProducerPutRequest(invalidId, p1.name(), p1.createdAt());
+        var request = new ProducerPutRequest(invalidId, p1.getName());
         var producerEntity = p1;
 
         BDDMockito.given(mapper.fromProducerPutRequestToEntity(request)).willReturn(producerEntity);
@@ -451,8 +451,8 @@ class ProducerControllerTest {
         return Stream.of(
                 Arguments.of(ProducerPutRequest.builder().build()),
                 Arguments.of(createValid().id(-99L).build()),
-                Arguments.of(createValid().name("").build()),
-                Arguments.of(createValid().createdAt(LocalDateTime.now().plusYears(1)).build())
+                Arguments.of(createValid().name("").build())
+//                Arguments.of(createValid().createdAt(LocalDateTime.now().plusYears(1)).build())
         );
     }
 
@@ -460,8 +460,7 @@ class ProducerControllerTest {
         var dateNow = LocalDateTime.now();
         return ProducerPutRequest.builder()
                 .id(1L)
-                .name("Juca")
-                .createdAt(dateNow);
+                .name("Juca");
     }
 
 

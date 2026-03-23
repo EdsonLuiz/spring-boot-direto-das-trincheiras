@@ -1,7 +1,7 @@
 package com.edson.service;
 
 import com.edson.domain.Producer;
-import com.edson.repository.ProducerHardCodedRepository;
+import com.edson.repository.ProducerRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +28,7 @@ class ProducerServiceTest {
     private ProducerService service;
 
     @Mock
-    private ProducerHardCodedRepository repository;
+    private ProducerRepository repository;
 
     private List<Producer> producers;
 
@@ -57,8 +57,8 @@ class ProducerServiceTest {
     void findAll_ReturnsEntitiesByName_WhenNameMatches() {
         var producer = producers.getFirst();
         List<Producer> expectedProducersFound = singletonList(producer);
-        BDDMockito.given(repository.findByName(producer.name())).willReturn(expectedProducersFound);
-        var sut = service.findAll(producer.name());
+        BDDMockito.given(repository.findByName(producer.getName())).willReturn(expectedProducersFound);
+        var sut = service.findAll(producer.getName());
         Assertions.assertThat(sut).isNotNull().containsAll(expectedProducersFound);
     }
 
@@ -79,7 +79,7 @@ class ProducerServiceTest {
     void findByIdOrThrowNotFound_ReturnsEntity_WhenIdExists() {
         // Given
         var expectedProducer = producers.getFirst();
-        var id = expectedProducer.id();
+        var id = expectedProducer.getId();
         BDDMockito.when(repository.findById(id)).thenReturn(Optional.of(expectedProducer));
         // When
         var actualProducer = service.findByIdOrThrowNotFound(id);
@@ -135,7 +135,7 @@ class ProducerServiceTest {
                 .isEqualTo(producerSaved)
                 .hasFieldOrPropertyWithValue("id", 99L);
 
-        Assertions.assertThat(actualProducer.createdAt())
+        Assertions.assertThat(actualProducer.getCreatedAt())
                 .as("The persisted producer should have a creation timestamp")
                 .isNotNull();
     }
@@ -210,14 +210,14 @@ class ProducerServiceTest {
         // Then
         ArgumentCaptor<Producer> producerCaptor = ArgumentCaptor.forClass(Producer.class);
         BDDMockito.then(repository).should().findById(validId);
-        BDDMockito.then(repository).should().update(producerCaptor.capture());
+        BDDMockito.then(repository).should().save(producerCaptor.capture());
 
         Producer savedProducer = producerCaptor.getValue();
-        Assertions.assertThat(savedProducer.name())
+        Assertions.assertThat(savedProducer.getName())
                 .as("The name should be updated to the new value")
                 .isEqualTo(updatedName);
 
-        Assertions.assertThat(savedProducer.createdAt())
+        Assertions.assertThat(savedProducer.getCreatedAt())
                 .as("The original createdAt date must be preserved after update")
                 .isEqualTo(originalCreatedAt);
     }
@@ -246,6 +246,6 @@ class ProducerServiceTest {
 
         // Auditing interactions
         BDDMockito.then(repository).should().findById(nonExistentId);
-        BDDMockito.then(repository).should(BDDMockito.never()).update(BDDMockito.any(Producer.class));
+        BDDMockito.then(repository).should(BDDMockito.never()).save(BDDMockito.any(Producer.class));
     }
 }
